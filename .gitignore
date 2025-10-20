@@ -58,5 +58,4 @@ hs_err_pid*
 /target/
 
 *.iml
-/C#/CosmosDB-NoSQL_CognitiveSearch/appsettings.Development.json
-/C#/CosmosDB-NoSQL/appsettings.Development.json
+appsettings.json
