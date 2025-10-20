@@ -78,8 +78,10 @@ To begin, follow these steps:
 
 
 2)	**Upload Documents to Cosmos DB:** Select this option to read documents from the local machine and upload the JSON files to the Cosmos DB NoSQL account.
-    #### Parsing files from Local Folder
-    ``` C#
+    
+#### Parsing files from Local Folder
+    
+``` C#
     public static List<Recipe> ParseDocuments(string Folderpath)
     {
       List<Recipe> ret = new List<Recipe>();
@@ -94,11 +96,12 @@ To begin, follow these steps:
           }
       );
       return ret;    
-    }
+    } 
+```
+
+####  Uploading Documents in Bulk to Azure Cosmos DB
     
-    ```
-    ####  Uploading Documents in Bulk to Azure Cosmos DB
-    ```C#
+```C#
     public async Task AddRecipesAsync( List<Recipe> recipes)
     {
         BulkOperations<Recipe> bulkOperations = new BulkOperations<Recipe>(recipes.Count);
@@ -108,12 +111,12 @@ To begin, follow these steps:
         }
         BulkOperationResponse<Recipe> bulkOperationResponse = await bulkOperations.ExecuteAsync();
     }
-    ```
-3)	**Vectorize and Upload Recipes to Azure Cognitive Search:** The JSON data uploaded to Cosmos DB is not yet ready for efficient integration with Open AI. To use the RAG pattern, we need to find relevant recipes from Cosmos DB. Embeddings help us achieve this. To accomplish the task, we will utilize the vector search capability in Azure Cosmos DB NoSQL API to search for embeddings. Vectorize the recipes and save them into Cosmos DB for future use. 
+```
+3)  **Vectorize and Upload Recipes to Azure Cognitive Search:** The JSON data uploaded to Cosmos DB is not yet ready for efficient integration with Open AI. To use the RAG pattern, we need to find relevant recipes from Cosmos DB. Embeddings help us achieve this. To accomplish the task, we will utilize the vector search capability in Azure Cosmos DB NoSQL API to search for embeddings. Vectorize the recipes and save them into Cosmos DB for future use. 
 
-   
     #### Generate Embedings using Open AI Service
-  	``` C#
+  	
+``` C#
     public async Task<float[]?> GetEmbeddingsAsync(dynamic data)
     {
         try
@@ -137,11 +140,11 @@ To begin, follow these steps:
             return null;
         }
     }
-    ```
-
+```
     
-    #### Upload embeddings to Azure Cosmos DB
-  	``` C#
+#### Upload embeddings to Azure Cosmos DB
+
+``` C#
     public async Task UpdateRecipesAsync(Dictionary<string, float[]> dictInput)
     {
         BulkOperations<Recipe> bulkOperations = new BulkOperations<Recipe>(dictInput.Count);
@@ -150,15 +153,14 @@ To begin, follow these steps:
             await _container.PatchItemAsync<Recipe>(entry.Key,new PartitionKey(entry.Key), patchOperations: new[] { PatchOperation.Add("/vectors", entry.Value)});
         }
     }
-    ```   
+```   
 
     
 4)	**Perform Search:** This option in the application runs the search based on the user query. The user query is converted to an embedding using the Open AI service. The embedding is then used to perform a vector search. The vector search attempts to find vectors that are close to the supplied vector and returns a list of items. The search results are converted to strings, and sent to the Open AI service as prompts. During this process, we also include the instructions we want to provide to the Open AI service as prompt. The Open AI service processes the instructions and custom data provided as prompts to generate the response.
 
-    
-
-    #### Performing Vector Search in Azure Cosmos DB NoSQL
-  	```C#
+#### Performing Vector Search in Azure Cosmos DB NoSQL
+  	
+```C#
     public async Task<List<Recipe>> SingleVectorSearch(float[] vectors, double similarityScore)
     {
         
@@ -182,11 +184,11 @@ To begin, follow these steps:
         }
         return recipes;
     }
-    ```
+```
+     
+#### Prompt Engineering to make sure Open AI service limits the response to supplied recipes
     
-   
-    #### Prompt Engineering to make sure Open AI service limits the response to supplied recipes
-    ```C#
+```C#
     //System prompts to send with user prompts to instruct the model for chat session
     private readonly string _systemPromptRecipeAssistant = @"
         You are an intelligent assistant for Contoso Recipes. 
@@ -202,10 +204,11 @@ To begin, follow these steps:
         - Assume the user is not an expert in cooking.
         - Format the content so that it can be printed to the Command Line console;
         - In case there are more than one recipes you find let the user pick the most appropiate recipe.";
-     ```
-    
-    #### Generate Chat Completion based on Prompt and Custom Data 
-    ``` C#
+```
+
+#### Generate Chat Completion based on Prompt and Custom Data 
+
+``` C#
      public async Task<(string response, int promptTokens, int responseTokens)> GetChatCompletionAsync(string userPrompt, string documents)
      {
     
@@ -251,4 +254,4 @@ To begin, follow these steps:
     
          }
      }
-    ```
+```
